@@ -18,15 +18,15 @@ script:
 
 deploy:
   provider: pages
-  skip-cleanup: true
+  skip_cleanup: true
   github-token: $GITHUB_TOKEN  # Set in travis-ci.org dashboard, marked secure
   verbose: true
-  local-dir: public
+  local_dir: public
   on:
     branch: master
-  repo: fivestrong.github.io
+  repo: fivestrong/fivestrong.github.io
   fqdn: linuxfunk.com
-  target-branch: gh-pages
-  keep-history: true
+  target_branch: master
+  keep_history: true
   email: fivestrong@live.com
   name: fivestrong
