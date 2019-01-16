@@ -1,7 +1,6 @@
 ---
 title: MySQL+BIND-dlz 实现智能DNS
 date: 2017-03-17 13:12:03
-draft: true
 ---
 ### 配置环境
 ```

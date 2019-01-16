@@ -1,7 +1,6 @@
 ---
 title: 'v2ray实现ws+tls+nginx加密传输'
 date: 2017-10-31 14:29:14
-draft: true
 ---
 ### 1.V2Ray加密tls原理
 别的代理都是直接客户端穿墙使用TCP、HTTP或自定义协议和墙外的服务器连接。 

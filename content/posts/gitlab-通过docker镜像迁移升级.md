@@ -1,7 +1,6 @@
 ---
 title: gitlab 通过docker镜像迁移升级
 date: 2017-10-30 12:18:13
-draft: true
 ---
 迁移版本:
 旧gitlab(8.8.3)  CentOS 6.8

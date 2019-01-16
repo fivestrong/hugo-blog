@@ -1,7 +1,6 @@
 ---
 title: 使用docker服务配置Zabbix+Grafana监控
 date: 2017-10-30 12:20:08
-draft: true
 ---
 纯命令行启动
 ```

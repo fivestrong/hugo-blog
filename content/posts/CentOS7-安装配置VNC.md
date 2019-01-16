@@ -1,7 +1,6 @@
 ---
 title: CentOS7 安装配置VNC
 date: 2017-08-31 13:27:11
-draft: true
 ---
 ### 1. 安装图形化界面
 ```

@@ -1,7 +1,6 @@
 ---
 title: DRBD配置与测试
 date: 2015-12-16 20:41:38
-draft: true
 ---
 ### 一、软件安装
 1.关闭selinux和iptables

@@ -1,7 +1,6 @@
 ---
 title: 'zabbix-agent yum install '
 date: 2017-10-17 08:39:53
-draft: true
 ---
 Step 1 – Add Required Repository
 ```shell

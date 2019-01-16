@@ -1,7 +1,6 @@
 ---
 title: pyenv python多版本控制工具
 date: 2016-03-25 17:04:49
-draft: true
 ---
 pyenv:一个简单的python版本管理工具，它能够让你改变全局python版本，安装并同时启用多个版本，并且可以创建python虚拟环境virualenv.
 它可以在linux和OS X上运行，并且无需root权限。

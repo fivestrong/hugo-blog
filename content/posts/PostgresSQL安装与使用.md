@@ -1,7 +1,6 @@
 ---
 title: PostgresSQL安装与使用
 date: 2017-03-23 16:30:33
-draft: true
 ---
 ### 系统版本
 CentOS6.8

@@ -1,7 +1,6 @@
 ---
 title: '解决Linux下Sublime text 3的中文输入问题 '
 date: 2016-04-09 14:14:05
-draft: true
 ---
 http://c4fun.cn/blog/2013/11/30/linux-sublimetext-chinese/
 

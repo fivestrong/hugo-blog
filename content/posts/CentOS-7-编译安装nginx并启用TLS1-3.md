@@ -1,7 +1,6 @@
 ---
 title: CentOS 7 编译安装nginx并启用TLS1.3
 date: 2018-04-28 14:08:45
-draft: true
 ---
 ```python
 ### 更新日志
