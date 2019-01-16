@@ -3,14 +3,11 @@
 # https://docs.travis-ci.com/user/customizing-the-build/
 
 language: go
+git:
+    depth: 1
 
-python:
-    - master
-
-# before_install
-# install - install any dependencies required
 install:
-    - go get github.com/gohugoio/hugo
+    - go get -v github.com/gohugoio/hugo
 
 before_script:
     - rm -rf public 2> /dev/null
@@ -18,7 +15,7 @@ before_script:
 # script - run the build script
 script:
     - hugo
-    - echo "$CNAME_URL" > public/CNAME
+    # - echo "$CNAME_URL" > public/CNAME
 
 deploy:
   provider: pages
@@ -29,3 +26,8 @@ deploy:
   local-dir: public
   on:
     branch: master
+  repo: fivestrong.github.io
+  fqdn: linuxfunk.com
+  target_branch: master
+  email: fivestrong@live.com
+  name: fivestrong
