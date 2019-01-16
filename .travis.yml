@@ -15,19 +15,18 @@ before_script:
 # script - run the build script
 script:
     - hugo
-    # - echo "$CNAME_URL" > public/CNAME
 
 deploy:
   provider: pages
   skip-cleanup: true
   github-token: $GITHUB_TOKEN  # Set in travis-ci.org dashboard, marked secure
   verbose: true
-  keep-history: true
   local-dir: public
   on:
     branch: master
   repo: fivestrong.github.io
   fqdn: linuxfunk.com
-  target_branch: master
+  target-branch: gh-pages
+  keep-history: true
   email: fivestrong@live.com
   name: fivestrong
