@@ -1,6 +1,6 @@
 baseURL = "http://linuxfunk.com/"
 languageCode = "en"
-defaultContentLanguage = "en"                             # en / zh-cn / ... (This field determines which i18n file to use)
+defaultContentLanguage = "zh-cn"                             # en / zh-cn / ... (This field determines which i18n file to use)
 title = "モルガンナの家"
 preserveTaxonomyNames = true
 enableRobotsTXT = true
@@ -51,7 +51,7 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
   name = "About"
   weight = 50
   identifier = "about"
-  url = "/about"
+  url = "/about/"
 
 [params]
   version = "4.x"           # Used to give a friendly message when you have an incompatible update
@@ -163,7 +163,7 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
   [params.social]                                         # 社交链接
     a-email = "mailto:fivestrong@live.com"
     c-twitter = "https://twitter.com/fivestrong5"
-    g-github = "https://github.com/fivestrong"
+    g-github = "https://github.com/fivestrong"  
 
 # See https://gohugo.io/about/hugo-and-gdpr/
 [privacy]
