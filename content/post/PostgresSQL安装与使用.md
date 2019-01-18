@@ -1,7 +1,11 @@
 ---
 title: PostgresSQL安装与使用
 date: 2017-03-23 16:30:33
+tags: ["postgres"]
+categories: ["linux"]
 ---
+PostgresSQL安装与使用
+<!--more-->
 ### 系统版本
 CentOS6.8
 ### 安装官方yum源

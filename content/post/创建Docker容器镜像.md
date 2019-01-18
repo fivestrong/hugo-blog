@@ -1,9 +1,13 @@
 ---
 title: 创建Docker容器镜像
 date: 2017-10-30 12:10:15
+tags: ["docker"]
+categories: ["linux"]
 ---
+
 ### 1.Dockerfile
 Dockerfile 是用户定义的一系列用来生成容器镜像的文件，通过执行来构建镜像
+<!--more-->
 ```
 docker image build xxx.xx
 ```

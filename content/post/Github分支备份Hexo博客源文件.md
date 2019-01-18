@@ -1,11 +1,13 @@
 ---
 title: Github分支备份Hexo博客源文件
 date: 2017-11-01 12:22:52
+tags: ["hexo", "github"]
+categories: ["linux"]
 ---
 ### 需求
 将hexo部署在GitHub Pages上，但仅同步编译好的静态文件，如果想要在多个平台写博客，hexo的源码就需要同步到云端，方便拉取部署。
 最简单的方法就是利用博客的 repo 分支（ master 分支的必须用来存放你博客网站文件）托管 Hexo 源文件和配置达到备份的目的。
-
+<!--more-->
 ### 将博客目录源文件push到repo分支上
 ```shell
 # 在博客目录下

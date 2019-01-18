@@ -1,8 +1,12 @@
 ---
 title: 使用docker服务配置Zabbix+Grafana监控
 date: 2017-10-30 12:20:08
+tags: ["zabbix", "docker", "grafana"]
+categories: ["linux"]
 ---
+使用docker服务配置Zabbix+Grafana监控
 纯命令行启动
+<!--more-->
 ```
 1. Start empty MySQL server instance
 

@@ -1,7 +1,13 @@
 ---
 title: 'zabbix-agent yum install '
 date: 2017-10-17 08:39:53
+tags: ["zabbix"]
+categories: ["linux"]
 ---
+zabbix-agent yum install
+<!--more-->
+### zabbix-agent yum install
+
 Step 1 – Add Required Repository
 ```shell
 CentOS/RHEL 7:

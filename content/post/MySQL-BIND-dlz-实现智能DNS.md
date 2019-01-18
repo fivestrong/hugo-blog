@@ -1,7 +1,11 @@
 ---
 title: MySQL+BIND-dlz 实现智能DNS
 date: 2017-03-17 13:12:03
+tags: ["mysql", "dns"]
+categories: ["linux"]
 ---
+MySQL+BIND-dlz 实现智能DNS
+<!--more-->
 ### 配置环境
 ```
 系统：centos 6.8

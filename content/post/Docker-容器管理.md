@@ -1,7 +1,11 @@
 ---
 title: Docker 容器管理
 date: 2017-10-30 12:17:03
+tags: ["docker"]
+categories: ["linux"]
 ---
+docker 常用命令纪录
+<!--more-->
 ### 1.基础命令
 ```
 docker container ls -a    #查看所有容器

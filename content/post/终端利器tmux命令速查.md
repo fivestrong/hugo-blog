@@ -1,9 +1,12 @@
 ---
 title: 终端利器tmux命令速查
 date: 2016-06-28 14:19:36
+tags: ["tumux"]
+categories: ["linux"]
 ---
 配置文件：https://github.com/gpakosz/.tmux
 
+<!--more-->
 ### 基本操作：
 ```shell
 ?	列出所有快捷键；按q返回

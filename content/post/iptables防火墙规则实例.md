@@ -1,7 +1,11 @@
 ---
 title: iptables防火墙规则实例
 date: 2016-03-14 14:18:35
+tags: ["iptables"]
+categories: ["linux"]
 ---
+iptables防火墙规则实例
+<!--more-->
 ```bash
 
 #!/bin/bash

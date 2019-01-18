@@ -1,11 +1,16 @@
 ---
 title: gitlab 通过docker镜像迁移升级
 date: 2017-10-30 12:18:13
+tags: ["gitlab", "docker"]
+categories: ["linux"]
 ---
 迁移版本:
+
 旧gitlab(8.8.3)  CentOS 6.8
+
 新gitlab(9.5.5) postgresql(9.6) redis(2.8.4) CentOS 7.4
 
+<!--more-->
 目录规划：
 ```
 总目录：/home/data

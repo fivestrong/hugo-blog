@@ -1,7 +1,11 @@
 ---
 title: Docker Basic
 date: 2017-10-30 12:07:34
+tags: ["docker"]
+categories: ["linux"]
 ---
+一些docker基础知识
+<!--more-->
 ### 1. Docker安装
 Docker必须要内核版本高于3.10,所以默认的centos6版本过低无法正常运行docker,推荐使用CentOS7或者选择升级内核。
 可以使用yum源安装

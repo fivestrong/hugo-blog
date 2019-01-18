@@ -1,10 +1,12 @@
 ---
 title: 用git hooks将静态文件部署到VPS
 date: 2017-11-03 15:56:46
+tags: ["github"]
+categories: ["linux"]
 ---
 Hexo 静态部署博客默认使用的是github提供的gitpages,如果你有自己的域名以及VPS的话，可以将博客同步一份到主机上并且在gitpage上保留一份副本。
 下面简单介绍一下通过git hook,同步文章的部署步骤，这样以后更换写作平台，以及VPS主机平台都方便回来查找。
-
+<!--more-->
 ### 使用SSH密钥登录远程VPS
 看.ssh目录下有没有，没有的话生成:
 ```
