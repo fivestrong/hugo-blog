@@ -10,6 +10,7 @@ CentOS7源码升级OpenSSL和OpenSSH
 这里启用telnet的原因是：
 
 如果通过ssh远程连接服务器后进行的版本升级操作，如果出现意外可能连接会断开并且无法再远程登录上去，如果服务器安装了iDRAC远程管理卡还有救，如果没有iDRAC远程管理卡，则需要提前开启telnet远程登录或是到机房现场进行升级操作比较妥当。
+注：实测不开也影响不大，但是开启比较保险。
 
 
 1、查看系统版本
@@ -21,7 +22,7 @@ CentOS7源码升级OpenSSL和OpenSSH
 ```
 2、安装telnet
 ```shell
-    yum install telnet-server
+    yum -y install telnet-server
     # 如果是centos6 需要修改配置
     vim /etc/xinetd.d/telnet
         # default: on
@@ -61,7 +62,7 @@ CentOS7源码升级OpenSSL和OpenSSH
 1、查看ssl版本及下载相关依赖包
 ```shell
 　　openssl version -a
-　　yum install -y gcc openssl-devel pam-devel rpm-build
+　　yum install  gcc pam-devel rpm-build
 ```
 2、下载安装包（查询最新安装包）
 ```shell
@@ -78,7 +79,7 @@ CentOS7源码升级OpenSSL和OpenSSH
 　　tar -xzvf openssl-1.0.2r.tar.gz
 　　cd openssl-1.0.2r
 　　./config --prefix=/usr --openssldir=/etc/ssl --shared zlib
-    make 
+    make -j 4
     make install
 ```
 5、创建库文件软链接并查看版本
@@ -106,7 +107,7 @@ CentOS7源码升级OpenSSL和OpenSSH
 ```shell
 　　rpm -qa |grep openssh
 　　for i in `rpm -qa |grep openssh`;do rpm -e $i --nodeps;done
-　　rm -rf /etc/ssh  # 删除操作请谨慎，最好提前看一下
+　　mv /etc/ssh /tmp/  # 删除操作请谨慎，最好提前看一下
 ```
 4、解压openssh安装包
 ```shell
@@ -116,7 +117,7 @@ CentOS7源码升级OpenSSL和OpenSSH
 5、编译安装
 ```shell
     ./configure --prefix=/usr --sysconfdir=/etc/ssh --with-md5-passwords --with-pam --with-tcp-wrappers --without-hardening --with-zlib
-    make
+    make -j 4
     make install
 ```
 6、安装完成，执行配置
