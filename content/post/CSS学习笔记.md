@@ -1,5 +1,5 @@
 ---
-title: "CSS学习笔记一"
+title: "CSS学习笔记"
 date: 2019-01-23T18:40:02+08:00
 tags: ["css"]
 categories: ["web"]
