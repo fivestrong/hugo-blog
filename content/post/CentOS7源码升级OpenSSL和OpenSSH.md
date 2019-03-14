@@ -10,7 +10,8 @@ CentOS7源码升级OpenSSL和OpenSSH
 这里启用telnet的原因是：
 
 如果通过ssh远程连接服务器后进行的版本升级操作，如果出现意外可能连接会断开并且无法再远程登录上去，如果服务器安装了iDRAC远程管理卡还有救，如果没有iDRAC远程管理卡，则需要提前开启telnet远程登录或是到机房现场进行升级操作比较妥当。
-注：实测不开也影响不大，但是开启比较保险。
+
+注1：实测centos7不开也影响不大，centos6可能会断，所以还是开启比较保险。
 
 
 1、查看系统版本
@@ -59,6 +60,14 @@ CentOS7源码升级OpenSSL和OpenSSH
 ```
 ### 二、升级OpenSSL
 
+深坑：OpenSSl升级到最新版后，运行系统自带的软件比如curl,wget等命令虽然能够正确但是会有报错信息
+```python
+curl: /lib64/libcrypto.so.10: no version information available (required by /lib64/libssh2.so.1)
+curl: /lib64/libssl.so.10: no version information available (required by /lib64/libldap-2.4.so.2)
+curl: /lib64/libcrypto.so.10: no version information available (required by /lib64/libldap-2.4.so.2)
+```
+可能的原因是软件版本不支持最新的openssl,所以如果有强迫症的话，可以不升级，直接升级OenpSSH。
+
 1、查看ssl版本及下载相关依赖包
 ```shell
 　　openssl version -a
@@ -83,7 +92,9 @@ CentOS7源码升级OpenSSL和OpenSSH
     make install
 ```
 5、创建库文件软链接并查看版本
-　　由于OpenSSL不提供libcrypto.so.10和libssl.so.10这两个库，而yum、wget等工具又依赖此库，需要创建软连接使用
+
+
+由于OpenSSL不提供libcrypto.so.10和libssl.so.10这两个库，而yum、wget等工具又依赖此库，需要创建软连接使用
 ```shell
     cd /usr/lib64/
     ll /usr/lib64/libssl.so*
