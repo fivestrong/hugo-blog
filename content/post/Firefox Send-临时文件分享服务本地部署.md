@@ -43,6 +43,7 @@ version: "3"
 services:
   web:
     image: firefox-send
+    container_name: firefox-send
     links:
       - redis
     ports:
@@ -53,6 +54,7 @@ services:
     restart: unless-stopped
   redis:
     image: redis:alpine
+    container_name: redis
     restart: unless-stopped
 ```
 
