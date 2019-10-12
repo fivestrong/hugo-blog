@@ -34,7 +34,12 @@ ln -sv /usr/local/python3/bin/pip3 /usr/bin/pip3
 ```
 5. 添加动态库
 ```shell
-echo "/usr/local/python3/lib" > /etc/ld.so.conf.d/python.conf
+新建 /etc/ld.so.conf.d/python.conf
+添加如下内容：
+    /usr/local/python3/lib
+    /usr/lib
+执行：
+    ldconfig
 查看结果：
     ldconfig -v
 ```
