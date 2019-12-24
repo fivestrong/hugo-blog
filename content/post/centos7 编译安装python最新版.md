@@ -18,7 +18,7 @@ tar -Jxvf Python-3.7.4.tar.xz
 2. 安装编译环境
 ```shell
 yum groupinstall 'Development Tools'
-yum install openssl-devel bzip2-devel expat-devel gdbm-devel sqlite-devel libffi-devel
+yum install openssl-devel bzip2-devel expat-devel gdbm-devel sqlite-devel libffi-devel readline-devel
 ```
 3. 编译安装
 ```shell
