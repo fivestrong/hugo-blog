@@ -1,9 +1,9 @@
 ---
-title: "A Tour of the Language"
+title: "Rust 语言概述"
 date: 2020-01-03T09:36:09+08:00
 tags: ["rust"]
 categories: ["rust"]
-draft: true
+draft: false
 ---
 
 ## 原生类型
@@ -418,3 +418,218 @@ fn main(){
 
 
 ### 作用于类型上的函数和方法
+
+类型可以包含对应的函数或者方法，使用 *impl blocks* ( providing implementations for a type ) 
+
+```rust
+// struct_methods.rs
+struct Player {
+  name: String,
+  iq: u8,
+  friends: u8
+}
+
+impl Player {
+  // Associated methods 类似其他语言的静态方法
+  fn with_name(name: &str) -> Player {
+    Player {
+      name: name.to_string(),
+      iq: 100,
+      friends: 100
+    }
+  }
+  
+  // Instance methods 实例方法
+  fn get_friends(&self) -> u8 {
+    self.friends
+  }
+  
+  fn set_friends(&mut self, count: u8){
+    self.friends = count;
+  }
+}
+
+fn main() {
+  let mut player  = Player::with_name("Dave");
+  player.set_friends(23);
+  
+  println!("{}'s friends count: {}", player.name, player.get_friends());
+  // 调用实例方法的另一种方式，其实player.set_friends()是一个语法糖
+  let _ = Player::get_friends(&player);
+}
+```
+
+实例方法有三种声明方式：
+
+```wiki
+- self 作为第一个参数 这种声明方法不允许使用该类型
+- &self  这种声明方法只有对类型实例的只读权限
+- &mut self 这种声明方法可以对类型实例进行修改
+```
+
+
+
+enums 也可以实现对应的方法 
+
+```rust
+// enum_methods.rs
+enum PaymentMode {
+  Debit,
+  Credit,
+  Paypal
+}
+
+fn pay_by_credit(amt: u64){
+  println!("Processing credit payment of {}", amt);
+}
+fn pay_by_debit(amt: u64){
+  println!("Processing debit payment of {}", amt);
+}
+fn paypal_redirect(amt: u64){
+  println!("Redirecting to paypal for amount: {}", amt);
+}
+
+impl PaymentMode {
+  fn pay(&self, amount: u64) {
+    match self {
+      PaymentMode::Debit => pay_by_debit(amount),
+      PaymentMode::Credit => pay_by_credit(amount),
+      PaymentMode::Paypal => paypal_redirect(amount)
+    }
+  }
+}
+
+fn get_saved_payment_mode() -> PaymentMode{
+  PaymentMode::Debit
+}
+
+fn main(){
+  let payment_mode = get_saved_payment_mode();
+  payment_mode.pay(512);
+}
+```
+
+
+
+## 集合类型
+
+### Arrays
+
+数组包含 *相同* 的类型并且 *固定* 长度
+
+```rust
+// arrays.rs
+fn main(){
+  let numbers: [u8; 10] = [1,2,3,4,5,6,7,8,9,10,11];
+  let floats = [0.1f64, 0.2, 0.3];
+  
+  println!("Number: {}", numbers[5]);
+  println!("Float: {}", floats[2]);
+}
+```
+
+### Tuples
+
+元组元素可以为不同类型
+
+```rust
+// tuples.rs
+
+fn main(){
+  let num_and_str: (u8, &str) = (40, "Have a good day!");
+  println!("{:?}", num_and_str);
+  let (num, strong) = num_and_str; // 用于接收不同的返回值
+  println!("From tuple: Number: {}, String: {}", num, string);
+}
+```
+
+
+
+### Vectors
+
+vectors 可以理解为动态数组，长度不固定，可以增长。vectors 声明在栈上，可以使用 *Vec::new* 或者 *vec![ ]* 来声明
+
+```rust
+// vec.rs
+fn main(){
+  let mut numbers_vec: Vec<u8> = Vec::new();
+  numbers_vec.push(1);
+  numbers_vec.push(2);
+  
+  let mut vec_with_macro = vec![1];
+  vec_with_macro.push(2);
+  let _ = vec_with_macro.pop();
+  
+  let message = if numbers_vec == vec_with_macro {
+    "They are equal"
+  } else {
+    "Nah! They look different to me"
+  };
+  
+  println!("{} {:?} {:?}", message, numbers_vec, vec_with_macro)
+}
+```
+
+
+
+
+
+### Hashmaps
+
+类似于python中的map，表示键值对数据。
+
+```rust
+// hashmaps.rs
+use std::collections::HashMap;
+fn main(){
+  let mut fruits = HashMap::new();
+  fruits.insert("apple", 3);
+  fruits.insert("mango", 6);
+  fruits.insert("orange", 2);
+  fruits.insert("avocado", 7);
+  for (k, v) in &fruits {
+    println!("I got {} {}", v, k);
+  }
+  
+  fruits.remove("orange");
+  let old_avocado = fruits["avocado"];
+  fruits.insert("avocado", old_avocado + 5);
+  println!("\nI now have {} avocados", fruits["avocado"]);
+}
+```
+
+
+
+### Slices
+
+切片是指向已存在的集合类型的指针或者引用，获取该类型特定范围内的可读数据。
+
+```rust
+// slices.rs
+fn main(){
+  let mut numbers: [u8;4] = [1,2,3,4]
+  {
+    let all: &[u8] = &numbers[..];
+    println!("All of them: {:?}", all);
+  }
+  {
+    let first_two: &mut [u8] = &mut numbers[0..2];
+    first_two[0] = 100;
+    first_two[1] = 99;
+  }
+  println!("Look ! I can modify through slices: {:?}", numbers);
+}
+```
+
+&str 类型是[u8]类型的slice, 与其他 byte slices 的不同之处是它们被唯一编码为UTF-8.
+
+
+
+### Iterators
+
+迭代器是一种方便操作集合类型的结构。Python中 *iter(some_list)* C++中 *vector.begin()* 可以将集合类型构造为迭代器。
+
+迭代器可以从更高抽象层次遍历集合类型。迭代器的另一个好处是不会将整个集合读入内存，而是在需要的时候计算或者访问集合元素。一般迭代器提供一个next( )方法，用于读取集合中的下一个元素。
+
+Rust 中 任何实现 *Iterator* trait 都可以为迭代器。这种类型可以使用 *for* 循环遍历元素。标准库中的 *Vector* *HashMap* *BTreeMap* 等都实现了这个trait。我们可以将多数的集合类型转化为迭代器，通过使用 *iter()* 或者 *into_iter* 
+
