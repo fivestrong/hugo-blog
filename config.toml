@@ -142,6 +142,11 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
     repo = ""               # The repo to store comments
     clientId = ""           # Your client ID
     clientSecret = ""       # Your client secret
+   
+  [params.utter]
+    repo = "fivestrong/blog-comment"
+    issueTerm = "title" #设置每篇文章对应的 issue 的名字，可选 pathname title url，
+    theme = "github-light"
 
   [params.flowchartDiagrams]# see https://blog.Morgana.com/example-site/post/js-flowchart-diagrams/
     enable = false

@@ -95,6 +95,18 @@
     </script>
     <noscript>Please enable JavaScript to view the <a href="https://github.com/gitalk/gitalk">comments powered by gitalk.</a></noscript>
   {{- end }}
+  
+  <!-- utterances -->
+  {{- if .Site.Params.utter.repo -}}
+    <div id="utter-container"></div>
+    <script src="https://utteranc.es/client.js"
+        repo= '{{ .Site.Params.utter.repo }}'
+        issue-term= "{{ .Site.Params.utter.issueTerm }}"
+        theme= '{{ .Site.Params.utter.theme }}'
+        crossorigin= "anonymous"
+        async>
+    </script> 
+  {{- end }}
 
   <!-- commento -->
   {{/* Only include commento if it's configured */}}
