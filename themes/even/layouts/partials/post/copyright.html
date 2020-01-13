@@ -21,12 +21,12 @@
     </span>
   </p>
   {{- end }}
-  <p class="copyright-item">
+  <!-- <p class="copyright-item">
     <span class="item-title">{{ T "permanent" }}</span>
     <span class="item-content">
         <a href="{{ .Permalink }}">{{ .Permalink }}</a>
     </span>
-  </p>
+  </p> -->
   {{ if $.Site.Params.linkToMarkDown -}}
     {{ with $.OutputFormats.Get "markdown" -}}
     <p class="copyright-item">
