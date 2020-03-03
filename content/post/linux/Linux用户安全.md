@@ -164,5 +164,66 @@ xiaohoong ALL=(ALL) /sbin/fdisk -l
 %backup_admins ALL=(ALL) BACKUP
 ```
 
+## 使用sudo的一些高阶技巧
+
+### sudo命令具有时效
+
+默认情况下当用户使用sudo并成功验证密码之后，在接下来的5分钟内，再次使用sudo将不用再次输入密码。这样做会给日常使用sudo带来便利，但也会产生一些风险，比如你使用过sudo之后突然有事要离开一会儿。
+
+当然最正确的做法就是退出当前登录的terminal，或者锁定屏幕。如果你觉得这样做太麻烦，也可以使用下面的命令：
+
+```shell
+sudo -k
+```
+
+这个命令的作用是重置sudo时效，让之前5分钟内不用输入密码的设定失效，这样下一个sudo命令就必须重新输入密码。
+
+### 查看你的sudo权限
+
+```shell
+sudo -l
+```
+
+这个命令可以查看用户当前被哪些赋予的sudo权限。
+
+### 警惕用户获取root shell 访问权限
+
+```shell
+xiaoming ALL=(ALL) /bin/bash, /bin/zsh
+```
+
+如果你按照上面的配置做了，那么你在xiaoming的用户下执行 **sudo /bin/bash** 你就能够直接进入root shell，非常危险。
+
+### 避免用户拥有shell escapes 权限
+
+拿神器vim举例，你可以在不退出vim的情况下执行系统命令，比如通过 **:!ls** 执行ls命令，这会列出当前目录下所有的文件目录。比如这时候你有一个需求，只允许xiaoming用户编辑sshd_config 文件，配置文件可能为：
+
+```shell
+xiaoming ALL=(ALL) /bin/vim /etc/ssh/sshd_config
+```
+
+这样配置会以sudo权限打开sshd_config，但是与此同时vim也就获得了sudo权限，这时候vim可以编辑其他本来没有权限打开的文件。
+
+解决这个问题的方法是使用sudoedit这个没有shell escape功能的编辑器。
+
+```shell
+xiaoming ALL=(ALL) sudoedit /etc/ssh/sshd_config
+```
+
+### 避免用户使用其他危险的程序
+
+```shell
+cat
+cut
+awk
+sed
+```
+
+这些带有编辑功能的程序如果获取了sudo权限，就可以编译系统任何配置文件，如果必须使用，需要对它添加限制。
+
+### 使用命令限制用户的行为
+
+
+
 
 
