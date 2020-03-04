@@ -60,6 +60,7 @@ wget -O /usr/lib/systemd/system/supervisord.service  https://github.com/Supervis
 # supervisord service for systemd (CentOS 7.0+)
 [Unit]
 Description=Supervisor daemon
+After=network.target
 
 [Service]
 Type=forking
