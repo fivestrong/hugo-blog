@@ -119,5 +119,28 @@ OPTIONS请求的一个应用就是跨域资源共享。现代浏览器为了安�
 2. bar.com 返回响应头信息中包含 Access-Control-Allow-Origin:http://foo.com。
 3. 这样foo.com就可以通过任何方法无限制的访问bar.com的资源了。
 
+### 日渐流行的单页应用(SPAs)
+
+这几年新兴的前端框架，例如 Angular,React,Vue.js 都支持将前端页面作为单独的网站入口，与后端的交互都通过REST API。
+
+SPA与传统方式数据流获取的对比：
+
+传统方式：
+
+1. 客户端从服务器请求网页。
+2. 服务器认证之后返回响应。
+3. 之后重复请求，每一次的请求后端都将数据打包渲染之后，以响应的形式返回客户端。
+
+SPA：
+
+1. 向后端发送请求，获取整个HTML网页。
+2. 触发当前页面JSON REST API请求，获取需要的数据。
+3. 通过获取到的数据调整当前页面内容。
+4. 当页面进行修改之后，客户端将改变信息通过API传回服务器端。
+
+两种方式分别是 Response-Oriented Architecture(ROA) / Service-Oriented Architecture(SOA)
+
+
+
 
 
