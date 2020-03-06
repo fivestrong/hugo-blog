@@ -43,6 +43,8 @@ GOPATH下面基本的目录结构有：
 
 ### 练手项目
 
+**注意**：这里推荐使用Go modules 来开发，而不是之前的$GOPATH方法，下面的项目仅作为演示路径，请根据情况自行调整。对Go modules不熟悉的可以查看这个文件，[Go modules](https://linuxfunk.com/2020/03/05/using-go-modules/)
+
 **需求**：
 
 创建一个REST服务，从OS网站镜像列表中选取最快的下载链接返回给用户。以Debian系统为例子，网址在：https://www.debian.org/mirror/list
