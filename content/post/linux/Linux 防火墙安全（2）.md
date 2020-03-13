@@ -1,4 +1,5 @@
 ---
+
 title: "Linux 防火墙安全（2）"
 date: 2020-03-11T17:06:48+08:00
 tags: ["firewall"]
@@ -361,6 +362,443 @@ flush ruleset
 加上之后重新加载配置文件，就能还原我们之前的配置。
 
 ##  firewalld 概述
+
+Firewalld 是RHEL/CentOS7和RHEL/CentOS8默认的防火墙管理软件，但是这两个版本还有所差别：7版本的 firewalld 是以 iptables 作为后台引擎，而8版本则换成了 nftables 作为后端引擎。同时 firewalld 与它所用后端引擎的使用方法还不同，它有自己的一套存储规则的方式。
+
+Firewalld 的一个优点是规则动态管理，不用重启 firewall 服务就能加载规则，同时不会断开已有服务连接。
+
+### 管理 firewalld 状态
+
+1. `sudo firewall-cmd --state`
+2. `sudo systemctl status firewalld`
+
+### 了解 firewalld zones 
+
+Firewalld 预设了很多 zones，配置文件在 /usr/lib/firewalld/zones 目录下面， 它们是 .xml 格式的
+
+```shell
+cd /usr/lib/firewalld/zones
+[root@centos8 zones]# ls
+block.xml  dmz.xml  drop.xml  external.xml  home.xml  internal.xml  public.xml  trusted.xml  work.xml
+```
+
+这里的每个 zone 文件代表一种特定的使用场景，建议了在这种情况下哪些端口开，哪些端口关闭。
+
+以 public zone 为例，我们看一下它的默认设置
+
+```shell
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>Public</short>
+  <description>For use in public areas. You do not trust the other computers on networks to not harm your computer. Only selected incoming connections are accepted.</description>
+  <service name="ssh"/>
+  <service name="dhcpv6-client"/>
+</zone>
+```
+
+可以看到 public zone 默认开了 ssh ipv6-dhcp 服务
+
+也可以使用 firewall-cmd 命令查看系统上所有的 zones 列表，这样就不用进入 zone 目录查看了。
+
+```shell
+sudo firewall-cmd --get-zones
+[root@centos8 zones]# sudo firewall-cmd --get-zones
+block dmz drop external home internal public trusted work
+```
+
+查看所有 zone 具体的配置
+
+```shell
+sudo firewall-cmd --list-all-zones
+block
+  target: %%REJECT%%
+  icmp-block-inversion: no
+  interfaces:
+  sources:
+  services:
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+  ...
+  ...
+```
+
+查看具体某一个 zone 配置
+
+```shel
+sudo firewall-cmd --info-zone=internal
+```
+
+现代电脑可能存在多个网卡，每一个网卡都能且仅可以配置一个 zone，查看默认 zone 命令
+
+```shell
+sudo firewall-cmd --get-default-zone
+```
+
+查看激活的 zone 所对应的网卡
+
+```shell
+sudo firewall-cmd --get-active-zones
+```
+
+系统安装之后默认激活的是 public zone ，假设我们想要将它更改为 dmz zone
+
+```shell
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>DMZ</short>
+  <description>For computers in your demilitarized zone that are publicly-accessible with limited access to your internal network. Only selected incoming connections are accepted.</description>
+  <service name="ssh"/>
+</zone>
+```
+
+```shell
+sudo firewall-cmd --set-default-zone=dmz
+[root@centos8 zones]# sudo firewall-cmd --get-default-zone
+dmz
+```
+
+默认的 dmz zone  仅仅放开了 ssh 服务，日常工作中我们需要开放更多的服务。除了使用firewall-cmd 添加，我们也可以直接修改配置文件。但是一般情况下不要修改 /usr/lib/firewalld 目录下的文件，正确的修改地方是 /etc/firewalld 目录
+
+```shell
+[root@centos8 firewalld]# ls
+firewalld.conf  firewalld.conf.old  helpers  icmptypes  ipsets  lockdown-whitelist.xml  services  zones
+```
+
+因为我们修改了默认 zone ， 所以 firewalld.conf 会有新旧配置文件
+
+```shell
+[root@centos8 firewalld]# sudo diff /etc/firewalld/firewalld.conf /etc/firewalld/firewalld.conf.old
+6c6
+< DefaultZone=dmz
+---
+> DefaultZone=public
+```
+
+### 向 zone 中添加需要开启的服务
+
+firewalld 默认提供很多常见服务名称，这些名称代表的服务会帮我们开启所需要的端口，这样极大的简化了我们手动添加端口的操作，这些服务器文件存放在 /usr/lib/firewalld/services 目录，可以通过命令查看
+
+```shell
+[root@centos8 firewalld]# firewall-cmd --get-services
+RH-Satellite-6 amanda-client amanda-k5-client amqp amqps apcupsd audit bacula bacula-client bb bgp bitcoin bitcoin-rpc bitcoin-testnet bitcoin-testnet-rpc bittorrent-lsd ceph ceph-mon cfengine cockpit condor-collector ctdb dhcp dhcpv6 dhcpv6-client distcc dns dns-over-tls docker-registry docker-swarm dropbox-lansync elasticsearch etcd-client etcd-server finger freeipa-4 freeipa-ldap freeipa-ldaps freeipa-replication freeipa-trust ftp ganglia-client ganglia-master git grafana gre high-availability http https imap imaps ipp ipp-client ipsec irc ircs iscsi-target isns jenkins kadmin kdeconnect kerberos kibana klogin kpasswd kprop kshell ldap ldaps libvirt libvirt-tls lightning-network llmnr managesieve matrix mdns memcache minidlna mongodb mosh mountd mqtt mqtt-tls ms-wbt mssql murmur mysql nfs nfs3 nmea-0183 nrpe ntp nut openvpn ovirt-imageio ovirt-storageconsole ovirt-vmconsole plex pmcd pmproxy pmwebapi pmwebapis pop3 pop3s postgresql privoxy prometheus proxy-dhcp ptp pulseaudio puppetmaster quassel radius rdp redis redis-sentinel rpc-bind rsh rsyncd rtsp salt-master samba samba-client samba-dc sane sip sips slp smtp smtp-submission smtps snmp snmptrap spideroak-lansync spotify-sync squid ssdp ssh steam-streaming svdrp svn syncthing syncthing-gui synergy syslog syslog-tls telnet tentacle tftp tftp-client tile38 tinc tor-socks transmission-client upnp-client vdsm vnc-server wbem-http wbem-https wsman wsmans xdmcp xmpp-bosh xmpp-client xmpp-local xmpp-server zabbix-agent zabbix-server
+```
+
+在添加新的服务之前，我们可以看看当前开启了哪些服务
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --list-services
+ssh
+```
+
+如果说需要添加服务，比如说 dropbox-lansync 服务，那么可以提前查看该服务所开启的端口
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --info-service=dropbox-lansync
+dropbox-lansync
+  ports: 17500/udp 17500/tcp
+  protocols:
+  source-ports:
+  modules:
+  destination:
+  includes:
+```
+
+现在将默认 zone 设置为 dmz zone，查看它的信息
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --info-zone=dmz
+dmz (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s5
+  sources:
+  services: ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules
+```
+
+当前仅有ssh一个服务开启， 我们来添加 web server 服务
+
+```shell
+sudo firewall-cmd --add-service=http
+```
+
+再次查看结果
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --info-zone=dmz
+dmz (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s5
+  sources:
+  services: http ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+```
+
+但是如果我们加上 --permanent 选项后
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --permanent --info-zone=dmz
+dmz
+  target: default
+  icmp-block-inversion: no
+  interfaces:
+  sources:
+  services: ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+```
+
+这就表明当前添加的规则没有永久生效，在系统重启之后就会消失。所以为了永久生效，添加命令需要加上 --permanent 选项，但是加了这个选项之后，你需要重载配置才能让它生效；而不加这个选项，配置立马生效。
+
+配置重载命令
+
+```shell
+sudo firewall-cmd --reload
+```
+
+删除服务只需要将 `--add-service` 换成 `--remove-service` 就行。
+
+### 向 zone 中添加需要开启的端口
+
+有一些服务的端口没有在 firewalld 于定义的服务列表中，这时候就需要我们手动去添加
+
+```shell
+sudo firewall-cmd --permanent --add-port=10000/tcp //将端口10000永久添加到默认zone配置中
+sudo firewall-cmd --reload // 让配置生效
+```
+
+同时添加多个端口
+
+```shell
+sudo firewall-cmd --add-port={636/tcp, 637/tcp, 638/udp}
+```
+
+同理，删除端口使用 `--remove-port` 选项
+
+如果不想每条命令都加上 --permanent 选项，可以等到全部添加完毕之后，统一设置为 permanent
+
+```shell
+sudo firewall-cmd --runtime-to-permanent
+```
+
+### ICMP 包阻断
+
+我们查看 dmz zone 的信息
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --info-zone=dmz
+dmz (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s5
+  sources:
+  services: http ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks:
+  rich rules:
+```
+
+可以看到有一行 icmp-blocks 信息，后面为空，表示允许所有ICMP包。为了安全起见，我们需要阻断一些类型的ICMP包。firewall 可以方便的查看 ICMP 包的类型
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --get-icmptypes
+address-unreachable bad-header beyond-scope communication-prohibited destination-unreachable echo-reply echo-request failed-policy fragmentation-needed host-precedence-violation host-prohibited host-redirect host-unknown host-unreachable ip-header-bad neighbour-advertisement neighbour-solicitation network-prohibited network-redirect network-unknown network-unreachable no-route packet-too-big parameter-problem port-unreachable precedence-cutoff protocol-unreachable redirect reject-route required-option-missing router-advertisement router-solicitation source-quench source-route-failed time-exceeded timestamp-reply timestamp-request tos-host-redirect tos-host-unreachable tos-network-redirect tos-network-unreachable ttl-zero-during-reassembly ttl-zero-during-transit unknown-header-type unknown-option
+```
+
+可以查看这些类型的具体信息
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --info-icmptype=network-redirect
+network-redirect
+  destination: ipv4
+[root@centos8 firewalld]# sudo firewall-cmd --info-icmptype=neighbour-advertisement
+neighbour-advertisement
+  destination: ipv6
+```
+
+查看是否阻断特定类型的icmp包
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --query-icmp-block=host-redirect
+no
+```
+
+添加对 redirects 类型的阻断
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --add-icmp-block=host-redirect
+success
+[root@centos8 firewalld]# sudo firewall-cmd --query-icmp-block=host-redirect
+yes
+[root@centos8 firewalld]# sudo firewall-cmd --info-zone=dmz
+dmz (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s5
+  sources:
+  services: http ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks: host-redirect
+  rich rules:
+  
+## 同时添加多个类型
+[root@centos8 firewalld]# sudo firewall-cmd --add-icmp-block={host-redirect,network-redirect}
+Warning: ALREADY_ENABLED: 'host-redirect' already in 'dmz'
+success
+[root@centos8 firewalld]# sudo firewall-cmd --info-zone=dmz
+dmz (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s5
+  sources:
+  services: http ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks: host-redirect network-redirect
+  rich rules:
+[root@centos8 firewalld]# sudo firewall-cmd --runtime-to-permanent
+success
+```
+
+### pinic 模式
+
+开启关闭命令，这将会立刻关闭所有网络连接，所以如果是远程连接的，千万不要这么做！！！
+
+```shell
+sudo firewall-cmd --panic-on
+sudo firewall-cmd --panic-off
+```
+
+### 日志记录丢弃包的信息
+
+使用的参数为 `--set-log-denied`
+
+```shell
+// 查看信息
+[root@centos8 firewalld]# sudo firewall-cmd --get-log-denied
+off
+// 设置
+[root@centos8 firewalld]# sudo firewall-cmd --set-log-denied=all
+success
+```
+
+除了直接设置 all ，也可以分类设置
+
+- unicast
+- broadcast
+- multicast
+
+```shell
+[root@centos8 firewalld]# sudo firewall-cmd --set-log-denied=multicast
+success
+[root@centos8 firewalld]# sudo firewall-cmd --get-log-denied
+multicast
+```
+
+红帽系的系统将 包阻断相关日志放在了 /var/log/messages 
+
+### 编写 rich language rules
+
+之前的端口，服务等规则添加能够满足日常简单的需求，但是 更加精细的控制就需要使用到叫做 '富语言规则'的东西。
+
+先来一个例子
+
+```shell
+sudo firewall-cmd --add-rich-rule='rule family="ipv4" source address="200.192.0.0/24" service name="http" drop'
+
+[root@centos8 ~]# sudo firewall-cmd --info-zone=dmz
+dmz (active)
+  target: default
+  icmp-block-inversion: no
+  interfaces: enp0s5
+  sources:
+  services: http ssh
+  ports:
+  protocols:
+  masquerade: no
+  forward-ports:
+  source-ports:
+  icmp-blocks: host-redirect network-redirect
+  rich rules:
+	rule family="ipv4" source address="200.192.0.0/24" service name="http" drop
+```
+
+这是一条阻止一个C类网段访问网站的规则，表示作用于ipv4网络，地址为 200.192.0.0/24 的IP无法访问该服务器的HTTP服务。 可以看到新加的规则显示在了最后。IPv6的规则同理，只需要将 family 换成 ipv6。
+
+有些规则是同时作用于IPv4和IPv6。比如，添加 Network Time Protocol(NTP) 服务规则，并且每分钟记录一条规则。
+
+```shell
+sudo firewall-cmd --add-rich-rule='rule service name="ntp" audit limit value="1/m" accept'
+```
+
+更详细的规则，可以通过 man firewalld.richlanguage 来查看 。现在添加的这些规则可以在 .xml 文件中看到，因为我的默认 zone 一直是 dmz ，所以可以查看一下 /etc/firewalld/zones/dmz.xml
+
+```shell
+[root@centos8 ~]# cat /etc/firewalld/zones/dmz.xml
+<?xml version="1.0" encoding="utf-8"?>
+<zone>
+  <short>DMZ</short>
+  <description>For computers in your demilitarized zone that are publicly-accessible with limited access to your internal network. Only selected incoming connections are accepted.</description>
+  <service name="ssh"/>
+  <service name="http"/>
+  <icmp-block name="host-redirect"/>
+  <icmp-block name="network-redirect"/>
+  <rule family="ipv4">
+    <source address="200.192.0.0/24"/>
+    <service name="http"/>
+    <drop/>
+  </rule>
+  <rule>
+    <service name="ntp"/>
+    <audit>
+      <limit value="1/m"/>
+    </audit>
+    <accept/>
+  </rule>
+</zone>
+```
+
+后来添加的富语言规则都是以 rule 为标签。
+
+## firewalld 在 7 和  8 中的不同
+
+
+
+
 
 ## 总结
 
