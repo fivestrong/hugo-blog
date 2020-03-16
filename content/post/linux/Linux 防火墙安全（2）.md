@@ -4,7 +4,7 @@ title: "Linux 防火墙安全（2）"
 date: 2020-03-11T17:06:48+08:00
 tags: ["firewall"]
 categories: ["linux"]
-draft: true
+draft: false
 ---
 
 ## nftables 概述
@@ -793,14 +793,6 @@ sudo firewall-cmd --add-rich-rule='rule service name="ntp" audit limit value="1/
 ```
 
 后来添加的富语言规则都是以 rule 为标签。
-
-## firewalld 在 7 和  8 中的不同
-
-
-
-
-
-## 总结
 
 ## 推荐阅读
 
