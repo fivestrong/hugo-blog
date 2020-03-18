@@ -3,7 +3,7 @@ title: "Restful Web Services With Go (3)"
 date: 2020-03-16T15:03:35+08:00
 tags: ["restful"]
 categories: ["golang"]
-draft: true
+draft: false
 ---
 
 学习目标：
@@ -634,6 +634,28 @@ Unknow column '10' in 'order clause'
 
 这个服务的目标是将一个非常长的URL转换成简洁、清晰、容易记忆的短URL返回给用户。
 
+URL短链接大概需要完成两个功能：
 
+- 实现一个简单的字符串映射算法，将长字符串映射为短字符串(Base 62)
+- 一个简单的Web服务，能够将短URL链接重定向到原始URL
 
- 
+URL短链接的好处是：
+
+- 便于用户记忆
+- 可用于有字数限制的地方，比如微博限制140字
+- 可预知的URL长度
+
+短链接服务流程：
+
+1. 获取原始URL
+2. 通过BASE62算法编码，生成短URL
+3. 将URL存储到数据库中，并映射到原始URL（[shortened_url : original_url]）
+4. 当一个请求通过短链接到达服务器，响应将HTTP重定向到原始URL
+
+API设计文档
+
+| URL          | REST Verb | Action                   | Success | Failure  |
+| ------------ | --------- | ------------------------ | ------- | -------- |
+| /api/v1/new  | POST      | Create a shortened URL   | 200     | 500, 404 |
+| /api/v1/:url | GET       | Redirect to original URL | 301     | 404      |
+
