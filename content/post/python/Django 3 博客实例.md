@@ -3,7 +3,7 @@ title: "Django 3 博客实例"
 date: 2020-04-04T22:34:03+08:00
 tags: ["django"]
 categories: ["python"]
-draft: true
+draft: false
 ---
 
 学习目标：
