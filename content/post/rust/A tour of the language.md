@@ -1,7 +1,7 @@
 ---
 title: "Rust 语言概述"
 date: 2020-01-03T09:36:09+08:00
-tags: ["rust"]
+tags: ["cheatsheet"]
 categories: ["rust"]
 draft: false
 ---
