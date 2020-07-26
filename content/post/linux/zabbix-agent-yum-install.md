@@ -36,6 +36,7 @@ Hostname=Server1
 Step 4 – Restarting Zabbix Agent
 ```shell
 # systemctl restart zabbix-agent
+# systemctl enable zabbix-agent
 ```
 Step 5 – open the firewall port 
 ```shell

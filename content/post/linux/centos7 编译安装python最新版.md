@@ -11,8 +11,8 @@ categories: ["linux"]
 1. 下载源代码
 
 ```shell
-wget https://www.python.org/ftp/python/3.7.6/Python-3.7.6.tar.xz
-tar -Jxvf Python-3.7.6.tar.xz
+wget https://www.python.org/ftp/python/3.8.3/Python-3.8.3.tar.xz
+tar -Jxvf Python-3.8.3.tar.xz
 ```
 
 2. 安装编译环境
@@ -22,7 +22,7 @@ yum install openssl-devel bzip2-devel expat-devel gdbm-devel sqlite-devel libffi
 ```
 3. 编译安装
 ```shell
-cd Python-3.7.6
+cd Python-3.8.3
 ./configure --prefix=/usr/local/python3 --enable-shared CFLAGS=-fPIC
 make
 make install
