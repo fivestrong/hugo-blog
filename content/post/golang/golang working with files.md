@@ -3,7 +3,7 @@ title: "Golang Working With Files"
 date: 2020-07-27T14:38:57+08:00
 tags: ["golang", "files"]
 categories: ["golang"]
-draft: true
+draft: false
 ---
 
 学习目标:
