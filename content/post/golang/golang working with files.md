@@ -1,7 +1,7 @@
 ---
 title: "Golang Working With Files"
 date: 2020-07-27T14:38:57+08:00
-tags: []
+tags: ["golang", "files"]
 categories: ["golang"]
 draft: true
 ---
@@ -709,25 +709,544 @@ func main() {
 
 #### 读取文件的所有bytes
 
+`ioutil`包提供了一个方法，能够一次性读取文件所有byte并返回byte切片，这样做的便利之处就是你不用在读之前提前定义。不便之处就是如果文件特别大，它会一次性返回大到无法想象的切片。
+
+```go
+package main
+
+import (
+	"fmt"
+  "io/ioutil"
+  "log"
+  "os"
+)
+
+func main(){
+  // Open file for reading 
+  file, err := os.Open("test.txt")
+  if err != nil {
+    log.Fatal(err)
+  }
+  
+  // os.File.Read(), io.ReadFull() and 
+  // io.ReadAtLeast() all work with a fixed
+  // byte slice that you make before you read
+  
+  // ioutil.ReadAll() will read every byte 
+  // from the reader (in this case a file)
+  // and return a slice of unknown slice  
+  data, err := ioutil.ReadAll(file)
+  if err != nil{
+    log.Fatal(err)
+  }
+  
+  fmt.Printf("Data as hex: %x\n", data)
+  fmt.Printf("Data as string: %s\n", data)
+  fmt.Println("Number of bytes read:", len(data))
+}
+```
+
+#### 读取文件到内存
+
+更前面的`io.ReadAll()`类似，`io.ReadFile()`也是将文件读取返回byte切片，不同的是，后者参数是文件路径，而不是打开的文件对象。这个函数会管理文件的打开、读取、关闭。这几乎是最方便的读取文件的方法。
+
+没有十全十美，这个方法的缺点就是会将全部文件直接读取到内存，大文件会比较占内存。
+
+```go
+package main
+
+import (
+  "io/ioutil"
+  "log"
+)
+
+func main(){
+  // Read file to byte silce
+  data, err := ioutil.ReadFile("test.txt")
+  if err != nil{
+    log.Fatal(err)
+  }
+  log.Printf("Data read: %s\n", data)
+}
+```
+
+### 缓存读取器(Buffered reader)
+
+创建一个缓存读取器会在内存缓存区存储一些内容，它提供一些在`os.File``io.Reader`这些类型不具备的方法。默认buffer大小是4096最小大小是16。
+
+缓存读取器提供的方法有:
+
+- Read(): 读取数据到byte slice
+- Peek():在不移动文件光标的前提下读取下一个bytes
+- ReadByte(): 读取一个byte
+- UnreadByte(): 取消读取最后一个byte
+- ReadBytes(): 读取bytes直到遇到指定分隔符
+- ReadString(): 读取字符串直到遇到指定分隔符
+
+下面的例子演示了怎么使用buffered reader 从文件中获取数据。
+
+```go
+package main
+
+import (
+	"bufio"
+  "fmt"
+  "log"
+  "os"
+)
+
+func main(){
+  // Open file and create a buffered reader on top
+  file, err := os.Open("test.txt")
+  if err != nil{
+    log.Fatal(err)
+  }
+  bufferedReader := bufio.NewReader(file)
+  
+  // Get bytes without advancing pointer
+  byteSlice := make([]byte, 5)
+  byteSlice, err = bufferedReader.Peek(5)
+  if err != nil{
+    log.Fatal(err)
+  }
+  fmt.Printf("Peeked at 5 bytes: %s\n", byteSlice)
+  
+  // Read and advance pointer
+  numBytesRead, err := bufferedReader.Read(byteSlice)
+  if err != nil{
+    log.Fatal(err)
+  }
+  fmt.Printf("Read %d bytes: %s\n", numBytesRead, byteSlice)
+  
+  // Ready 1 byte.Error if no byte to read
+  myByte, err := bufferedReader.ReadByte()
+  if err != nil{
+    log.Fatal(err)
+  }
+  fmt.Printf("Read 1 byte: %c\n", myByte)
+  
+  // Read up to and including delimiter
+  // Returns byte slice
+  dataBytes, err := bufferedReader.ReadBytes('\n')
+  if err != nil{
+    log.Fatal(err)
+  }
+  fmt.Printf("Read bytes: %s\n", dataBytes)
+  
+  // Read up to and including delimiter
+  dataString, err := bufferedReader.ReadString('\n')
+  if err != nil{
+    log.Fatal(err)
+  }
+  fmt.Printf("Read string: %s\n", dataString)
+  // This example reads a few lines so test.txt
+  // should have a few lines of text to work correct
+  
+}
+```
+
+### 使用 scanner 读取文件
+
+Scanner 属于`bufio`包， 它对于按照特定的分隔符逐步遍历文件非常有用。通常来说我们通过换行符来将文件分割为多行。在CSV中，逗号是分隔符。`bufio.Scanner`可以包装`os.File`对象 ，使用`Scan()`来读取到下一个分隔符的内容。然后使用`Text()`或者'Bytes()'来获取得到的数据。
+
+这里的分隔符不是简单的byte或者单个字符，需要你自己实现一个特殊的方法，决定分隔符在哪里，每次移动多少指针，以及返回什么数据。如果没有自定义`SplitFunc`，系统提供了默认的`ScanLines`，以及`ScanRunes` `ScanWords`
+
+自定义分割函数，需要实现类似的函数签名
+
+```go
+type SplitFuncfunc(data []byte, atEOF bool) (advance int, token []byte, err error)
+```
+
+```go
+package main
+
+import (
+	"bufio"
+  "fmt"
+  "log"
+  "os"
+)
+
+func main(){
+  // Open file and create scanner on top of it
+  file, err := os.Open("test.txt")
+  if err != nil{
+    log.Fatal(err)
+  }
+  scanner := bufio.NewScanner(file)
+  
+  // Default scanner is bufio.ScanLines.Lets use ScanWords.
+  // Could also use a custom function of SplitFunc type
+  scanner.Split(bufio.ScanWords)
+  // Scan for next token.
+  success := scanner.Scan()
+  if success == false {
+    // False on error or EOF.Check error
+    err = scanner.Err()
+    if err == nil{
+      log.Println("Scan completed and reached EOF")
+    }else{
+      log.Fatal(err)
+    }
+  }
+  // Get data from scan with Bytes() or Text()
+  fmt.Println("First word found: ", scanner.Text())
+  
+  // Call scanner.Scan() manually, or loop with for
+  for scanner.Scan() {
+    fmt.Println(scanner.Text())
+  }
+}
+```
+
+
+
 ## 文件归档
+
+归档是一种文件格式用来存储多数文件。最常用的两种归档格式是`tar balls` `zip archives` Go标准库包含`tar`和`zip`包。
+
+### 利用ZIP打包文件
+
+```go
+// This example uses zip but standard library
+// also supports tar archives
+package main
+
+import (
+	"archive/zip"
+  "log"
+  "os"
+)
+
+func main(){
+  // Create a file to write the archive buffer to 
+  // Could also use an in memory buffer.
+  outFile, err := os.Create("test.zip")
+  if err != nil{
+    log.Fatal(err)
+  }
+  defer outFile.Close()
+  
+  // Create a zip writer on top of the file writer
+  zipWriter := zip.NewWriter(outFile)
+  
+  // Add files to archive
+  // We use some hard code data to demonstrate,
+  // but you could iterate through all the files
+  // of each file, or you can take data from your
+  // program  and write it in to the archive
+  var filesToArchive = []struct{
+    Name, Body string
+  }{
+    {"test.txt", "String contents of file"},
+    {"test2.txt", "\x61\x62\x63\n"},
+  }
+  
+  // Create and write files to the archive, which in turn 
+  // are getting written to the underlying writer to the
+  // .zip file we created at the beginning
+  for _, file := range filesToArchive {
+    fileWriter, err := zipWriter.Create(file.Name)
+    if err != nil{
+      log.Fatal(err)
+    }
+    _, err = fileWriter.Write([]byte(file.Body))
+    if err != nil {
+      log.Fatal(err)
+    }
+  }
+  
+  // Clean up
+  err = zipWriter.Close()
+  if err != nil {
+    log.Fatal(err)
+  }
+  
+}
+```
+
+### 利用unzip解压
+
+```go
+// This example uses zip but standard library
+// also supports tar archlives
+package main
+
+import (
+  "archive/zip"
+  "io"
+  "log"
+  "os"
+  "path/filepath"
+)
+
+func main() {
+  // Create a reader out of the zip archive
+  zipReader, err := zip.OpenReader("test.zip")
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer zipReader.Close()
+  
+  // Iterate through each file/dir found in
+  for _, file := range zipReader.Reader.File{
+    // Open the file inside the zip archive
+    // like a normal file
+    zippedFile, err := file.Open()
+    if err != nil{
+      log.Fatal(err)
+    }
+    defer zippedFile.Close()
+    
+    // Specify what the extracted file name should be.
+    // You can specify a full path or a prefix
+    // to move it to a different directory.
+    // In this case, we will extract the file from
+    // the zip to a file of the same name.
+    targetDir := "./"
+    extractedFilePath := filepath.Join(
+    	targetDir,
+      file.Name,
+    )
+    
+    // Extract the item (or create directory)
+    if file.FileInfo().IsDir(){
+      // Create directories to recreate directory
+      // structure inside the zip archive.Also 
+      // preserves permissions
+      log.Println("Creating directory:", extractedFilePath)
+      os.MkdirAll(extractedFilePath, file.Mode())
+    } else {
+      // Extract regular file since not a directory
+      log.Println("Extracting file:", file.Name)
+      
+      // Open an output file for writing
+      outputFile, err := os.OpenFile(
+      	extractedFilePath,
+        os.O_WRONLY|os.O_CREATE|os.O_TRUNC,
+        file.Mode(),
+      )
+      if err != nil{
+        log.Fatal(err)
+      }
+      defer outputFile.Close()
+      
+      // "Extract" the file by copying zipped file
+      // contents to the output file
+      _, err := io.Copy(outputFile, zippedFile)
+      if err != nil{
+        log.Fatal(err)
+      }
+    }
+  }
+}
+```
 
 
 
 ## 文件压缩
 
+Go标准库支持压缩，包括的算法有：
+
+- bzip2: bzip2 format
+- flate: DEFLATE(RFC 1951)
+- gzip: gzip format(RFC 1952)
+- lzw: Lempel-Ziv-Welch format
+- zlib: zlib format(RFC 1950)
+
+相关的官方文档可以访问 https://golang.org/pkg/compress/
+
+### 压缩文件
+
+```go
+// This example uses gzip but standard library alse
+// supports zlib, bz2, flate, and lzw
+package main
+
+import (
+	"compress/gzip"
+  "log"
+  "os"
+)
+
+func main(){
+  // Create .gz file to write to 
+  outputFile, err := os.Create("test.txt.gz")
+  if err != nil{
+    log.Fatal(err)
+  }
+  
+  // Create a gzip writer on top of file writer
+  gzipWriter := gzip.NewWriter(outputFile)
+  defer gzipWriter.Close()
+  
+  // When we write to the gzip writer
+  // it will in turn compress the contents
+  // and then write it to the underlying
+  // file writer as well
+  // We don't have to worry about how all
+  // the compression works since we just
+  // use it as a simple writer interface
+  // that we send bytes to
+  _, err := gzipWriter.Write([]byte("Gophers rule!\n"))
+  if err != nil {
+    log.Fatal(err)
+  }
+  log.Println("Compressed data written to file.")
+}
+```
+
+### 解压缩文件
+
+```go
+// This example uses gzip but standard library alse
+// supports zlib, bz2, flate, and lzw
+package main
+
+import (
+	"compress/gzip"
+  "io"
+  "log"
+  "os"
+)
+
+func main(){
+  // Open gzip file that we want to uncompress
+  // The file is a reader, but we could use any
+  // data source.It is common for web servers
+  // to return gzipped contents to save bandwidth
+  // and in that case the data is not in a file
+  // on the file system but is in a memory buffer
+  gzipFile, err := os.Open("test.txt.gz")
+  if err != nil {
+    log.Fatal(err)
+  }
+  
+  // Create a gzip reader on top of the file reader
+  // Again, it could be any type reader though
+  gzipReader, err := gzip.NewReader(gzipFile)
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer gzipReader.Close()
+  
+  // Uncompress to a writer. We'll use a file writer
+  outfileWriter, err := os.Create("unzipped.txt")
+  if err != nil {
+    log.Fatal(err)
+  }
+  defer outfileWriter.Close()
+  
+  // Copy contents of gzipped file to ouput file
+  _, err = io.Copy(outfileWriter, gzipReader)
+  if err != nil {
+    log.Fatal(err)
+  }
+}
+```
+
 
 
 ## 创建临时文件及文件夹
+
+`ioutil`包提供了两个方法`TempDir()`和`TempFile()` 这两个方法默认路径使用系统的临时文件夹(比如LInux 的 /tmp)
+
+```go
+package main
+
+import (
+  "fmt"
+  "io/ioutil"
+  "log"
+  "os"
+)
+
+func main() {
+  // Create a temp dir in the system default temp folder
+  tempDirPath, err := ioutil.TempDir("", "myTempDir")
+  if err != nil{
+    log.Fatal(err)
+  }
+  fmt.Println("Temp dir created:", tempDirPath)
+  
+  // Create a file in new temp directory
+  tempFile, err := ioutil.TempFile(tempDirPath, "myTempFile.txt")
+  if err != nil {
+    log.Fatal(err)
+  }
+  fmt.Println("Temp file created:", tempFile.Name())
+  
+  // ...do something with temp file/dir ....
+  
+  // Close file
+  err = tempFile.Close()
+  if err != nil{
+    log.Fatal(err)
+  }
+  
+  // Delete the resources we created
+  err = os.Remove(tempFile.Name())
+  if err != nil{
+    log.Fatal(err)
+  }
+  err = os.Remove(tempDirPath)
+  if err != nil{
+    log.Fatal(err)
+  }
+  
+}
+```
 
 
 
 ## 通过HTTP下载文件
 
+下面的例子是下载特定URL资源到文件
+
+```go
+package main
+
+import (
+  "io"
+  "log"
+  "net/http"
+  "os"
+)
+
+func main(){
+  // Create output file
+  newFile, err := os.Create("devdungeon.html")
+  if err != nil{
+    log.Fatal(err)
+  }
+  defer newFile.Close()
+  
+  // HTTP GET request devdungeon.com
+  url := "http://www.devdungeon.com/archive"
+  response, err := http.Get(url)
+  defer response.Body.Close()
+  
+  // Write bytes from HTTP response to file
+  // response.Body satisfies the reader interface.
+  // newFile satisfies the writer interface.
+  // That allows us to use io.Copy which accepts
+  // any type that implements reader and writer interface
+  numBytesWritten, err := io.Copy(newFile, response.Body)
+  if err != nil{
+    log.Fatal(err)
+  }
+  
+  log.Printf("Downloading %d byte file.\n", numBytesWritten)
+}
+```
+
 
 
 ## 总结
 
+这篇文章总结了操作文件的一些常用方法，让我们了解到都有哪些方法可以使用。这里面的代码可以作为例子帮助你记起相关操作。
 
+这些方法分布到了不同的包中。其中`os`包只提供了最基础的操作包括文件的打开,关闭简单的读取。而`io`包提供的方法能够用于实现了reader、writer接口的数据，这要比`os`包更高阶一些。最后的`ioutil`包提供了更加高阶并且封装好的便捷方法供我们使用。
 
 
 
