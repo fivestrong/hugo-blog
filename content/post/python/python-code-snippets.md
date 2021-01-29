@@ -3,7 +3,7 @@ title: "Python Code Snippets"
 date: 2021-01-28T15:32:54+08:00
 tags: ["snippet"]
 categories: ["python"]
-draft: true
+draft: false
 ---
 
 ### validate IP addresses
