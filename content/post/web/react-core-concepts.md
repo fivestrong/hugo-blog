@@ -1,9 +1,13 @@
 ---
 title: "React Core Concepts"
-date: 2021-02-01T17:34:47+08:00
+date: 2021-02-02T21:42:38+08:00
+lastmod: 2021-02-02T21:42:38+08:00
+draft: true
+description: ""
 tags: ["react"]
 categories: ["web"]
-draft: true
+author: "Morgana"
+
 ---
 
 ## React components 简介
@@ -169,4 +173,195 @@ class MainComponent extends React.Component {
 不过这个没有硬性规定，所以可以根据喜好使用。
 
 ### 第一个实例
+
+官方提供了创建React项目的命令行工具，能够方便我们快速的开启项目。这个工具是`Create React App`
+
+```shell
+npx create-react-app myapp
+```
+
+创建项目之后进入并运行
+
+```shell
+cd myapp && npm start
+```
+
+这样就能看到官方的React模板试例，当前的项目目录是
+
+```shell
+.
+├── README.md
+├── node_modules
+├── package.json
+├── public
+├── src
+└── yarn.lock
+```
+
+其中`src/`目录存放React组件的源代码，打开`App.js`可以看到这个组件被`index.js`文件引用。
+
+我们可以先不动别的，把`Edit <code>src/App.js</code> and save to reload.`这一行改为`Hello World!`，删除 `Learn React`这一行的a标签。
+
+修改完之后我们可以从浏览器中立刻看到结果，就是我们修改之后的`Hello World!`
+
+## JSX: React模板语言
+
+通过前面我们了解到，一个组件必须返回一些内容：
+
+```react
+class MainComponent extends React.Component {
+  render(){
+    return <h1>Hello World！</h1>
+  }
+}
+```
+
+这里的标签`<h1>`看起来很像标准的HTML标签，但事实上它是React中特殊的模板语言，称为`JSX`。
+
+`JSX`是`JavaScript`的扩展，它使得能够在React元素中使用JS，可以赋值给变量，可以作为函数的返回值，比如：
+
+```react
+class MainComponent extends React.Component {
+  render(){
+    const element = <h1>Hello World！</h1>
+    return element
+  }
+}
+```
+
+JSX中可以加入样式class，但是需要使用额外的名称`className`
+
+```react
+const App = <h1 className='text-lowercase'>Hello World</h1>
+```
+
+JSX中的注释方式有些特别，你可能之前接触过HTML语言，它里面使用`<!-- -->`语法来注释，但是在React中这样写会报`Unexpected token`
+
+```react
+export default function App(){
+  return (
+  <div>
+    <h1>Hello World</h1>
+      	<!-- <p>My name is xiaoming</p> -->
+     <p>Nice to meet you!</p>
+   </div>
+  )
+}
+```
+
+正确的方式使使用`{/* comment */}`
+
+```react
+export default function App(){
+  return (
+  <div>
+    <h1>Hello World</h1>
+      {/* <p>My name is xiaoming</p> */}
+     <p>Nice to meet you!</p>
+   </div>
+  )
+}
+```
+
+多行注释
+
+```react
+export default function App(){
+  return (
+  <div>
+    {/* <h1>Commenting in React and JSX</h1>
+      <p>My name is xiaoming</p> 
+      <p>Nice to meet you!</p> */}
+   </div>
+  )
+}
+```
+
+小技巧：最新的IDE一般都会带有注释的快捷键，比如VSCode中使用`CTRL+/`  `command+/`(macOS)就可以自动实现注释
+
+## JSX中使用JavaScript
+
+JSX中使用`{}`来包含JavaScript语法：
+
+```react
+const lowercaseClass = 'text-lowercase'; 
+const text = 'Hello World!'; 
+const App = <h1 className={lowercaseClass}>{text}</h1>;
+```
+
+这便是React元素与HTML的不同之处，你在真正的HTML中没法通过`{}`来直接引用JavaScript。
+
+这样做的好处就是，我们不需要再学习一套新的模板语法，而是直接使用JavaScript函数来控制模板的显示输出。
+
+比如说我们有一个用户的数组需要显示:
+
+```javascript
+const users = [ 
+  { id: 1, name: 'Xiaoming', role: 'Web Developer' }, 
+  { id: 2, name: 'Xiaohong', role: 'Web Designer' }, 
+  { id: 3, name: 'Xiaowang', role: 'Team Leader' }, 
+]
+```
+
+我们可以使用`map()`函数来遍历数组
+
+```react
+import React from "react"
+
+function App() {
+
+const users = [ 
+  { id: 1, name: 'Xiaoming', role: 'Web Developer' }, 
+  { id: 2, name: 'Xiaohong', role: 'Web Designer' }, 
+  { id: 3, name: 'Xiaowang', role: 'Team Leader' }, 
+]
+
+return (
+    <>
+    <p>The currently active users list:</p>
+    <ul>
+      {
+        users.map(function(user){
+          return ( <li> {user.name} as the {user.role} </li>)
+        })
+      }
+    </ul>
+    </>
+  )
+}
+```
+
+上面的例子会遍历`users`中的所有元素，生成对应的`<li>`，以HTML列表的形式显示在浏览器中。
+
+还需要注意的一点是，上述方法还会报一个警告，说每一个子列需要`"key"`参数。这个key在React中有特殊的作用，它用于唯一操作列表中子元素的增删改查。
+
+推荐使用你数据中的独一无二的标识来作为key值。比如上面的例子，`id`就可以作为这个唯一值:
+
+```react
+return (
+  
+<li key={user.id}>
+    {user.name} as the {user.role}  
+</li>
+  
+)
+```
+
+要是实在找不到独一无二的key，也可以使用数组的下标:
+
+```react
+{
+users.map(function(user, index){
+  return ( 
+      <li key={index}>
+        {user.name} as the {user.role} 
+      </li> 
+    ) 
+})
+}
+```
+
+但是最好不要这么做，可能会出现未知的BUG
+
+## 多组件合并
 
