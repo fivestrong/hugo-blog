@@ -83,3 +83,77 @@ StopIteration
 6.25
 ```
 
+### accept extra arguments
+
+```python
+import argparse
+
+parser = argparse.ArgumentParser(description='Calculate your BMI.')
+parser.add_argument("-w", "--weight", type=int, help='Your weight in kg')
+parser.add_argument("-l", "--length", type=int, help='Your length in cm')
+parser.parse_args(["-w", '80', "--length", '186'])
+
+
+try:
+    parser.parse_args(["-w", '80', "--length", '186', "--years", "23"])
+except SystemExit:
+    pass
+  
+/*out 
+usage: argparse_default.py [-h] [-w WEIGHT] [-l LENGTH]
+argparse_default.py: error: unrecognized arguments: --years 23
+*/
+
+know, unknown = parser.parse_known_args(["-w", '80', "--length", '186', "--years", "23"])
+print(know)
+print(unknown)
+
+/*out
+Namespace(length=186, weight=80)
+['--years', '23']
+*/
+
+```
+
+### choose a random item
+
+range(start, stop,[step])
+
+randrange 结合了choice, range的功能
+
+```python
+>>> from random import choice, randrange
+>>> list(range(10,101,10))
+[10, 20, 30, 40, 50, 60, 70, 80, 90, 100]
+>>> choice(range(10,101,10))
+90
+>>> choice(range(10,101,10))
+20
+>>> randrange(10,101,10)
+50
+>>> randrange(10,101,10)
+100
+```
+
+### str mapping of replacements
+
+```python
+>>> vowels = 'aeiou'
+>>> text = "It's Friday evening, which means X-FILES night"
+>>> table = {c: c.swapcase() for c in vowels + vowels.upper()}
+>>> table
+{'a': 'A', 'e': 'E', 'i': 'I', 'o': 'O', 'u': 'U', 'A': 'a', 'E': 'e', 'I': 'i', 'O': 'o', 'U': 'u'}
+>>> translation = text.maketrans(table)
+# keys are outputs of ord() = integer representation of (Unicode) characters
+# so ord('A') -> 65, ord('E') -> 69, etc.
+>>> translation
+{97: 'A', 101: 'E', 105: 'I', 111: 'O', 117: 'U', 65: 'a', 69: 'e', 73: 'i', 79: 'o', 85: 'u'}
+
+# apply the ranslation mapping, effectively "swapcasing" all vowels
+>>> text.translate(translation)
+"it's FrIdAy EvEnIng, whIch mEAns X-FiLeS nIght"
+# an alternative: using join + a generator expression
+>>> "".join(table.get(c, c) for c in text)
+"it's FrIdAy EvEnIng, whIch mEAns X-FiLeS nIght"
+```
+
