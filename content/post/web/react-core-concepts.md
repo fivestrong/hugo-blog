@@ -1,13 +1,12 @@
 ---
 title: "React Core Concepts"
-date: 2021-02-02T21:42:38+08:00
+date: 2021-02-01T21:42:38+08:00
 lastmod: 2021-02-02T21:42:38+08:00
-draft: true
+draft: false
 description: ""
 tags: ["react"]
 categories: ["web"]
 author: "Morgana"
-
 ---
 
 ## React components 简介
@@ -944,7 +943,7 @@ class ChildComponentTwo extends React.Component {
 
 该方法的最佳使用场景是关闭组件监听订阅的额外服务。
 
-## 向组件中添加CSS
+## 组件添加CSS
 
 目前有四种不同的方法来将CSS添加到React组件当中，我们来看看它们具体怎么实现以及哪种适合你。
 
@@ -1015,7 +1014,7 @@ export default function App() {
 
 ### CSS 样式表(stylesheets)
 
-当我们使用Create React App 创建项目，它为我们自动配置了使用webpack处理`asset`。这样你就能像导入JavaScript文件那样导入`.css`文件。在项目中创建一个css文件：
+当我们使用Create React App 创建项目，它为我们自动配置并使用webpack处理`assets`。这样你就能像导入JavaScript文件那样导入`.css`文件。在项目中创建一个css文件：
 
 ```css
 /* style.css */
@@ -1037,7 +1036,7 @@ function App(){
     <p className="paragraph-text">
     	The weather is sunny today.
     </p>
-    <>
+    </>
   )
 }
 ```
@@ -1122,4 +1121,33 @@ function App() {
 ```
 
 ### Styled components
+
+styled components 是为React和React Native设计的库，它结合了`CSS in JS`和`CSS Modules`两种方式。
+
+```react
+import React from "react";
+import styled from "styled-components";
+
+// Create a Title component
+// that renders an <h1> tag with some styles
+const Title = styled.h1`
+	font-size: 1.5em;
+	text-align: center;
+	color: palevioletred;
+`;
+
+function App() {
+  return <Title>Hello World!</Title>
+}
+```
+
+但你这么写样式，实际创建了一个带有自定义样式的React 组件。这种奇怪语法结构的实现是使用JavaScript标签模板实现的。
+
+更多信息可以查看[官方文档](https://styled-components.com/docs)， 了解它解决的问题以及更多例子。
+
+### 小结
+
+如果是实验性质或者比较小的项目，`CSS 样式表`的方式就能满足要求，毕竟这个跟我们日常写CSS最接近。如果是处理复杂的大型项目，
+
+为了日后的可扩展性，可以考虑`CSS Modules`或者`Styled Components`这两种方式。
 
