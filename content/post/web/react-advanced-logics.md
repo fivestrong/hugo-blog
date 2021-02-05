@@ -1,8 +1,8 @@
 ---
 title: "React Advanced Logics"
 date: 2021-02-04T13:00:03+08:00
-lastmod: 2021-02-04T13:00:03+08:00
-draft: true
+lastmod: 2021-02-05T14:46:03+08:00
+draft: false
 description: ""
 tags: ["react"]
 categories: ["web"]
@@ -485,9 +485,415 @@ const About = props => {
 
 ### useParams hook
 
+`useParams hook`能够直接返回当前路由中的动态参数
+
+例如，目前有一个`/post/:slug的URL，按照我们之前的处理方法：
+
+```react
+export default function App(){
+  return (
+  	<Router>
+    	<div>
+      	<nav>
+        	<ul>
+          	<li><Link to="/">Home</Link></li>
+            <li><Link to="/post/hello-world">First Post</Link></li>
+          </ul>
+        </nav>
+        <Switch>
+        	<Route path="/post/:slug" component={Post} />
+          <Route path="/"><Home /></Route>
+        </Switch>
+      </div>
+    </Router>
+  );
+}
+```
+
+这里我们将`Post`组件传入到`/post/:slug`路由当中，这样我们就可以在组件中使用`match.params`来取得参数
+
+```react
+// Old way to fetch parameters
+function Post({ match }) {
+  let params = match.params;
+  return (
+  	<div>
+    	In React Router v4, you get parameters from the props.
+      Current parameter is <strong>{params.slug}</strong>
+    </div>
+  );
+}
+```
+
+这样做可行，但是如果项目中动态路由数目剧增，管理起来会很不方便。你需要了解哪个路由中的组件需要使用到props，哪个不需要。同时这个由`Route`传递下来的`match`对象，需要你手动的依次传递到下层的其他DOM组件。
+
+这时候`useParams hook`就应运而生了，它能够在不使用组件props的情况下获取到当前路由的参数。
+
+```react
+<Switch>
+	<Route path="/post/:slug" component={Post} />
+  <Route path="/users/:id/:hash">
+    <Users />
+  </Route>
+  <Route>
+    <Home />
+  </Route>
+</Switch>
+
+function Users() {
+  let params = useParams();
+  return (
+    <div>
+    	In React Router v5, You can use hooks to get paramters.
+      <br />
+      Current id parameter is <strong>{params.id}</strong>
+      <br />
+      Current hash parameter is <strong>{params.hash}</strong>
+    </div>
+  )
+}
+```
+
+如果这时候`Users`组件的子组件同样需要用到这些参数，你只需要接着使用`useParams()`就可以了。
+
 ### useLocations hook
+
+在React Router v4版本中，跟获取参数一样，你需要使用组件props模式来取得`location`对象。
+
+```react
+<Route path="/post/:number" component={Post} />
+
+function Post(props){
+  return (
+    <div>
+    	In React Router v4, you get the location object from props.
+      <br />
+      Current pathname: <strong>{props.location.pathname}<strong>
+    </div>
+  );
+}
+```
+
+v5.1以后，可以使用`useLocation hook`获取
+
+```react
+<Route path="/users/:id/:password" >
+  <Users />
+</Route>
+
+// new way to fetch location with hooks
+function Users(){
+  let location = useLocation();
+  return (
+    <div>
+    	In React Router v5, You can use hooks to get location object.
+      <br />
+      Current pathname: <strong>{location.pathname}<strong>
+    </div>
+  );
+}
+```
 
 ### useHistory hook
 
+```react
+<Route path="/post/:slug" component={Post}>
+
+// Old way to fetch history
+function Post(props){
+    return (
+      <div>
+      	In React Router v4, you get the history object from props.
+        <br />
+        <button type="button" onClick={() => props.history.goBack()}>Go back</button>
+      </div>
+    );
+  }
+```
+
+使用`useHistory hook`
+
+```react
+<Route path="/users/:id/:hash">
+  <Users>
+</Route>
+
+
+function Users(){
+    let history = useHistory();
+    return (
+      <div>
+      	In React Router v5, You can use hooks to get history object.
+        <br />
+        <button type="button" onClick={() => history.goBack()}>Go back</button>
+      </div>
+    );
+  }
+```
+
+使用这些hooks能够极大的简化代码，我们不再需要在组件里面传递`component`、`render`参数，仅需要在`<Route>`中传递URl path，并且把需要渲染的组件包裹在它之间就行。
+
 ### useRouteMatch hook
+
+有时候为了获取 match 对象，我们需要使用`<Route>`组件
+
+```react
+<Route path="/post">
+  <Post />
+</Route>
+
+
+function Post(){
+    return (
+      <Route 
+        path="/post/:slug"
+        render={({ match }) => {
+          return (
+          	<div>Your current path: <strong>{match.path}</strong></div>
+          );
+        }}
+        />
+    );
+  }
+```
+
+v5版本使用hooks的实现
+
+```react
+<Route path="/users">
+  <Users />
+</Route>
+
+function Users() {
+  let match = useRouteMatch("/users/:id/:hash");
+  return (
+  	<div>
+    	In React Router v5, You can use useRouteMatch to get match object.
+      <br />
+      Current match path: <strong>{match.path}</strong>
+    </div>
+  )
+}
+```
+
+
+
+## Context API
+
+通常来说在React中，你的数据需要从顶层组件一层一层传递到下层组件，即使这些数据只有最后一层组件才需要用到。这种自上而下的数据流有一个好处就是能够精准的定位数据传递过程中在哪里出现了问题。
+
+不过这种方法确实有点儿死板，所以React提供了类似定义全局变量的功能，这就是`Context API`。
+
+在一个组件中定义的数据作为`provider`生产者，而其他使用这个数据的组件作为`consumer`消费者。通过Context API共享的数据可以理解为React 组件树中的全局变量，它可以用来实现的功能有：共享当前认证用户、选择的主题或者语言。
+
+跟 `useState hook`使用类似，可以通过`React.createContext()`来创建，并传递默认值
+
+```react
+import React from 'react';
+
+// default to 'cn'
+const LanguageContext = React.createContext('cn')
+```
+
+这样我们就得到一个可以使用的`LanguageContext`，它提供了`LanguageContext.Provider`和 `LanguageContext.Consumer`两个组件。
+
+**生成context**
+
+context中的数据通常是由state提供，一般当state改变，context相应的数据也会改变。你需要使用`Provider`组件将自定义组件包起来
+
+```react
+import React from 'react';
+
+const LanguageContext = React.createContext('cn')
+
+function App() {
+  const language = 'en'
+  
+  return (
+    <LanguageContext.Provider value={language}>
+      <Hello />
+    </LanguageContext.Provider>
+  )
+}
+```
+
+这样`<Hello>`组件以及它的子组件都能使用`LanguageContext`提供的值。
+
+**方法组件使用context内容的方式**
+
+方法组件可以使用提供的 `useContext` hook
+
+```react
+function Hello(){
+  const language = useContext(LanguageContext)
+  
+  if (language === "en"){
+    return <h1>Hello!</h1>
+  }
+  return <h1>你好！</h1>
+}
+```
+
+我们根据上面的代码修改，使得context值能够被改变
+
+```react
+import React, { useState, useContext } from 'react';
+
+const LanguageContext = React.createContext()
+
+function App() {
+  const [language, setLanguage] = useState("en");
+  
+  const changeLangeuage = () => {
+    if (language === "en"){
+      setLanguage("cn")
+    } else {
+      setLanguage("en")
+    }
+  }
+  
+  return (
+    <LanguageContext.Provider value={language}>
+      <Hello />
+      <button onClick={changeLanguage}>Change Language</button>
+    </LanguageContext.Provider>
+  )
+}
+
+function Hello(){
+  const language = useContext(LanguageContext)
+  
+  if (language === "en"){
+    return <h1>Hello!</h1>
+  }
+  return <h1>你好！</h1>
+}
+```
+
+**在类组件中使用context值**
+
+在类组件中你可以使用`Context.Consumer`组件来获取值。这个组件需要一个子函数，它会将当前的值传递进去。
+
+```react
+class Hello extends React.Component {
+  render() {
+    return (
+    	<LanguageContext.Consumer>
+        {(language) => {
+          if (language === "en"){
+            return <h1>Hello!</h1>
+          }
+          return <h1>你好！</h1>
+        }}
+      </LanguageContext.Consumer>
+    );
+  }
+}
+```
+
+这种组件中套函数的方法，看着有点儿反人类，所以React官方还提供了另外一种方法，使用`contextType`，将context对象赋值给`contextType`，可以使用`this.context`得到context的值。
+
+```react
+class Hello extends React.Component {
+  static contextType = LanguageContext;
+  render() {
+    const language = this.context;
+    if (language === "en"){
+      return <h1>Hello!</h1>
+    }
+    return <h1>你好！</h1>
+  }
+}
+```
+
+
+
+由于全局变量的特性，你可以给多个组件提供相同的值。也就是说一个`provider`可以有多个`consumers`。
+
+
+
+## Some Tips
+
+**不要使用变量展开的方式传递props**
+
+```react
+function MainComponent() {
+  const props = { firstName: "Jack", lastName: "Skeld"}
+  return <Hello {...props} />
+}
+```
+
+这种方式将变量一股脑的传递到子组件，如果参数很多或者获取的数据来自其他API，全部传递的话，子组件会得到很多无用的数据，不便于定位数据。所以还是推荐用到什么数据就传递什么数据到子组件。
+
+**使用propTypes和defaultProps来对参数做限制**
+
+```react
+import React from "react";
+import ReactDOM from "react-dom";
+
+function App() {
+  return <Greeting name="Nathan" />;
+}
+    
+function Greeting(props){
+  return (
+  	<p>
+    	Hello! I'm {props.name},
+      a {props.name} years old {props.occupation}.
+      Pleased to meet you!
+    </p>
+  );
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+```
+
+上面的例子中`props.name`、`props.occupation`没有被传递，但是运行不会报错，React会忽略这两个参数，直接渲染剩下的数据。
+
+我们可以使用第三方包`propTypes`来对参数进行限制
+
+```shell
+npm install --save prop-types
+```
+
+
+
+```react
+import React from "react";
+import ReactDOM from "react-dom";
+import PropTypes from "prop-types";
+
+function App() {
+  return <Greeting name="Nathan" />;
+}
+    
+function Greeting(props){
+  return (
+  	<p>
+    	Hello! I'm {props.name},
+      a {props.name} years old {props.occupation}.
+      Pleased to meet you!
+    </p>
+  );
+}
+
+Greeting.propTypes = {
+  // name must be a string and defined
+  name: PropTypes.string.isRequired,
+  // age must be a number and defined
+  age: PropTypes.number.isRequired,
+  // occupation must be a string and defined
+  occupation: PropTypes.string.isRequired,
+}
+
+Greeting.defaultProps = {
+  name: "Nathan",
+  age: 27,
+  occupation: "Software Developer"
+}
+
+ReactDOM.render(<App />, document.getElementById("root"));
+```
+
+上面的代码我们通过`propTypes`限制了传递参数的类型以及是否必须要求提供，同时也加入了默认值。如果不定义默认值，我们不向组件传递值或者传递值类型错误，就会在console抛出告警。加入了默认值之后，不传值的话它会使用你定义的默认值。
 
